@@ -10,6 +10,6 @@ type StatefulSetInfo struct {
 func NewStatefulSetInfo(statefulSet *appsv1.StatefulSet) *StatefulSetInfo {
 	return &StatefulSetInfo{
 		StatefulSet:               statefulSet,
-		OptimizeSchedulingSetting: NewOptimizeSchedulingSettingFromLabels(statefulSet.Labels, int(*statefulSet.Spec.Replicas)),
+		OptimizeSchedulingSetting: NewOptimizeSchedulingSettingFromLabels(statefulSet.Labels, int(*statefulSet.Spec.Replicas), "StatefulSet"),
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"k8s.io/klog/v2"
 
 	podaffinity "vacant.sh/vmanager/pkg/definitions/pod-affinity"
-	apis2 "vacant.sh/vmanager/pkg/webhook/cache/apis"
+	"vacant.sh/vmanager/pkg/webhook/cache/apis"
 	"vacant.sh/vmanager/pkg/webhook/cache/utils"
 )
 
@@ -19,10 +19,15 @@ func (wc *WebhookCache) addReplicaSet(obj interface{}) {
 	wc.mutex.Lock()
 	defer wc.mutex.Unlock()
 
-	wc.replicaSets[types.NamespacedName{
+	replicaSetKey := types.NamespacedName{
 		Namespace: replicaSet.Namespace,
 		Name:      replicaSet.Name,
-	}] = replicaSet
+	}
+
+	wc.replicaSets[replicaSetKey] = replicaSet
+	if wc.replicaSetWorkloadSchedulingInfo[replicaSetKey] == nil {
+		wc.replicaSetWorkloadSchedulingInfo[replicaSetKey] = apis.NewWorkloadSchedulingInfo()
+	}
 
 	klog.V(5).Infof("Added ReplicaSet %s/%s", replicaSet.Namespace, replicaSet.Name)
 }
@@ -58,12 +63,10 @@ func (wc *WebhookCache) addDeployment(obj interface{}) {
 	wc.mutex.Lock()
 	defer wc.mutex.Unlock()
 
-	deploymentInfo := apis2.NewDeploymentInfo(deployment)
-
 	wc.deployments[types.NamespacedName{
 		Namespace: deployment.Namespace,
 		Name:      deployment.Name,
-	}] = deploymentInfo
+	}] = apis.NewDeploymentInfo(deployment)
 
 	klog.V(5).Infof("Added DeploymentInfo %s/%s", deployment.Namespace, deployment.Name)
 }
@@ -99,12 +102,15 @@ func (wc *WebhookCache) addStatefulSet(obj interface{}) {
 	wc.mutex.Lock()
 	defer wc.mutex.Unlock()
 
-	statefulSetInfo := apis2.NewStatefulSetInfo(statefulSet)
-
-	wc.statefulSets[types.NamespacedName{
+	statefulSetKey := types.NamespacedName{
 		Namespace: statefulSet.Namespace,
 		Name:      statefulSet.Name,
-	}] = statefulSetInfo
+	}
+
+	wc.statefulSets[statefulSetKey] = apis.NewStatefulSetInfo(statefulSet)
+	if wc.statefulSetWorkloadSchedulingInfo[statefulSetKey] == nil {
+		wc.statefulSetWorkloadSchedulingInfo[statefulSetKey] = apis.NewWorkloadSchedulingInfo()
+	}
 
 	klog.V(5).Infof("Added StatefulSetInfo %s/%s", statefulSet.Namespace, statefulSet.Name)
 }
@@ -165,16 +171,16 @@ func (wc *WebhookCache) addPod(obj interface{}) {
 	// The fourth step is to retrieve the WorkloadSchedulingInfo of this Pod from the Cache,
 	// which includes the status of the workload we are concerned about,
 	// such as the number of existing Pods and the number of Pods marked with Affinity.
-	var wsi *apis2.WorkloadSchedulingInfo
+	var wsi *apis.WorkloadSchedulingInfo
 	switch podSourceWorkloadType {
 	case "ReplicaSet":
 		if wc.replicaSetWorkloadSchedulingInfo[*podSourceWorkloadKey] == nil {
-			wc.replicaSetWorkloadSchedulingInfo[*podSourceWorkloadKey] = apis2.NewWorkloadSchedulingInfo()
+			wc.replicaSetWorkloadSchedulingInfo[*podSourceWorkloadKey] = apis.NewWorkloadSchedulingInfo()
 		}
 		wsi = wc.replicaSetWorkloadSchedulingInfo[*podSourceWorkloadKey]
 	case "StatefulSet":
 		if wc.statefulSetWorkloadSchedulingInfo[*podSourceWorkloadKey] == nil {
-			wc.statefulSetWorkloadSchedulingInfo[*podSourceWorkloadKey] = apis2.NewWorkloadSchedulingInfo()
+			wc.statefulSetWorkloadSchedulingInfo[*podSourceWorkloadKey] = apis.NewWorkloadSchedulingInfo()
 		}
 		wsi = wc.statefulSetWorkloadSchedulingInfo[*podSourceWorkloadKey]
 	default:
@@ -217,7 +223,7 @@ func (wc *WebhookCache) deletePod(obj interface{}) {
 	wc.mutex.Lock()
 	defer wc.mutex.Unlock()
 
-	var wsi *apis2.WorkloadSchedulingInfo
+	var wsi *apis.WorkloadSchedulingInfo
 
 	switch podSourceWorkloadType {
 	case "ReplicaSet":

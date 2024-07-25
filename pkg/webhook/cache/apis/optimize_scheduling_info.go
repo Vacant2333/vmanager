@@ -20,10 +20,10 @@ type OptimizeSchedulingSetting struct {
 	TargetOnSpotNum   int
 }
 
-func NewOptimizeSchedulingSettingFromLabels(labels labels.Set, replicaNum int) *OptimizeSchedulingSetting {
+func NewOptimizeSchedulingSettingFromLabels(labels labels.Set, replicaNum int, workloadType string) *OptimizeSchedulingSetting {
 	osi := &OptimizeSchedulingSetting{}
 
-	if labels == nil {
+	if labels == nil || replicaNum == 0 {
 		return osi
 	}
 
@@ -31,10 +31,26 @@ func NewOptimizeSchedulingSettingFromLabels(labels labels.Set, replicaNum int) *
 	enable := labels.Get(optimizescheduling.OptimizeSchedulingKey)
 	if enable == "true" {
 		osi.Enable = true
+	} else {
+		return osi
 	}
 
 	// Get the optimize scheduling strategy.
 	osi.Strategy = labels.Get(optimizescheduling.OptimizeSchedulingStrategyKey)
+	if osi.Strategy == "" {
+		// Set to default strategy.
+		if workloadType == "Deployment" {
+			osi.Strategy = optimizescheduling.OptimizeSchedulingStrategyAllInSpot
+		}
+
+		if workloadType == "StatefulSet" {
+			if replicaNum == 1 {
+				osi.Strategy = optimizescheduling.OptimizeSchedulingStrategyAllInOnDemand
+			} else {
+				osi.Strategy = optimizescheduling.OptimizeSchedulingStrategyMajorityInOnDemand
+			}
+		}
+	}
 
 	// Get the custom on demand replica number.
 	customOnDemandValue := labels.Get(optimizescheduling.OptimizeSchedulingStrategyCustomOnDemandKey)

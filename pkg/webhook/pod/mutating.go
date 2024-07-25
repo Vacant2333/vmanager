@@ -7,6 +7,7 @@ import (
 
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	nodetype "vacant.sh/vmanager/pkg/definitions/node-type"
@@ -60,6 +61,8 @@ func (m *Mutating) Handle(_ context.Context, req admission.Request) admission.Re
 	}
 
 	targetAffinitySettingName := m.Cache.DetermineNewPodAffinityPreference(pod)
+
+	klog.V(3).Infof("Determine new pod %s/%s affinity setting %s", pod.Namespace, pod.GenerateName, targetAffinitySettingName)
 
 	if targetAffinitySettingName == podaffinity.PodAffinityUnset {
 		return admission.Allowed("")

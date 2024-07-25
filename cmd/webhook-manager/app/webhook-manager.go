@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
 
@@ -67,6 +68,16 @@ func Run(ctx context.Context, opts *options.Options) error {
 		WebhookServer: webhook.NewServer(webhook.Options{
 			Host: opts.BindAddress,
 			Port: opts.SecurePort,
+
+			CertDir:  opts.CertDir,
+			CertName: opts.CertName,
+			KeyName:  opts.KeyName,
+
+			TLSOpts: []func(*tls.Config){
+				func(config *tls.Config) {
+					config.MinVersion = tls.VersionTLS13
+				},
+			},
 		}),
 		LeaderElection: false,
 	})

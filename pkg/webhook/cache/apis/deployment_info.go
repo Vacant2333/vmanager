@@ -12,6 +12,6 @@ type DeploymentInfo struct {
 func NewDeploymentInfo(deployment *appsv1.Deployment) *DeploymentInfo {
 	return &DeploymentInfo{
 		Deployment:                deployment,
-		OptimizeSchedulingSetting: NewOptimizeSchedulingSettingFromLabels(deployment.Labels, int(*deployment.Spec.Replicas)),
+		OptimizeSchedulingSetting: NewOptimizeSchedulingSettingFromLabels(deployment.Labels, int(*deployment.Spec.Replicas), "Deployment"),
 	}
 }
