@@ -36,9 +36,9 @@ func (o *Options) AddFlags(fs *pflag.FlagSet) {
 func (o *Options) Validate() field.ErrorList {
 	errList := field.ErrorList{}
 
-	if o.KubeConfig == "" {
-		errList = append(errList, field.Required(field.NewPath("kubeconfig"), "must specify a kubeconfig path."))
-	}
+	//if o.KubeConfig == "" {
+	//	errList = append(errList, field.Required(field.NewPath("kubeconfig"), "must specify a kubeconfig path."))
+	//}
 
 	return errList
 }

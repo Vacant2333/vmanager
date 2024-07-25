@@ -5,10 +5,10 @@ import (
 
 	"k8s.io/apimachinery/pkg/labels"
 
-	optimize_scheduling "vacant.sh/vmanager/pkg/definitions/optimize-scheduling"
+	optimizescheduling "vacant.sh/vmanager/pkg/definitions/optimize-scheduling"
 )
 
-type OptimizeSchedulingInfo struct {
+type OptimizeSchedulingSetting struct {
 	// Enable, target: optimize_scheduling.OptimizeSchedulingKey
 	Enable bool
 	// Strategy, target: optimize_scheduling.OptimizeSchedulingStrategyKey
@@ -20,36 +20,36 @@ type OptimizeSchedulingInfo struct {
 	TargetOnSpotNum   int
 }
 
-func NewOptimizeSchedulingInfoFromLabels(labels labels.Set, replicaNum int) *OptimizeSchedulingInfo {
-	osi := &OptimizeSchedulingInfo{}
+func NewOptimizeSchedulingSettingFromLabels(labels labels.Set, replicaNum int) *OptimizeSchedulingSetting {
+	osi := &OptimizeSchedulingSetting{}
 
 	if labels == nil {
 		return osi
 	}
 
 	// Get if enable the optimized scheduling.
-	enable := labels.Get(optimize_scheduling.OptimizeSchedulingKey)
+	enable := labels.Get(optimizescheduling.OptimizeSchedulingKey)
 	if enable == "true" {
 		osi.Enable = true
 	}
 
 	// Get the optimize scheduling strategy.
-	osi.Strategy = labels.Get(optimize_scheduling.OptimizeSchedulingStrategyKey)
+	osi.Strategy = labels.Get(optimizescheduling.OptimizeSchedulingStrategyKey)
 
 	// Get the custom on demand replica number.
-	customOnDemandValue := labels.Get(optimize_scheduling.OptimizeSchedulingStrategyCustomOnDemandKey)
+	customOnDemandValue := labels.Get(optimizescheduling.OptimizeSchedulingStrategyCustomOnDemandKey)
 	osi.CustomOnDemand, _ = strconv.Atoi(customOnDemandValue)
 
 	// Calculate the TargetOnDemandNum and TargetOnSpotNum by strategy.
 	switch osi.Strategy {
-	case optimize_scheduling.OptimizeSchedulingStrategyAllInOnDemand:
+	case optimizescheduling.OptimizeSchedulingStrategyAllInOnDemand:
 		osi.TargetOnDemandNum, osi.TargetOnSpotNum = replicaNum, 0
-	case optimize_scheduling.OptimizeSchedulingStrategyAllInSpot:
+	case optimizescheduling.OptimizeSchedulingStrategyAllInSpot:
 		osi.TargetOnDemandNum, osi.TargetOnSpotNum = 0, replicaNum
-	case optimize_scheduling.OptimizeSchedulingStrategyMajorityInOnDemand:
+	case optimizescheduling.OptimizeSchedulingStrategyMajorityInOnDemand:
 		osi.TargetOnDemandNum = (replicaNum / 2) + 1
 		osi.TargetOnSpotNum = replicaNum - osi.TargetOnDemandNum
-	case optimize_scheduling.OptimizeSchedulingStrategyCustom:
+	case optimizescheduling.OptimizeSchedulingStrategyCustom:
 		osi.TargetOnDemandNum, osi.TargetOnSpotNum = osi.CustomOnDemand, replicaNum-osi.CustomOnDemand
 	}
 

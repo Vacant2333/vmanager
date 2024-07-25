@@ -9,7 +9,7 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	optimize_scheduling "vacant.sh/vmanager/pkg/definitions/optimize-scheduling"
+	optimizescheduling "vacant.sh/vmanager/pkg/definitions/optimize-scheduling"
 )
 
 type Validating struct {
@@ -33,7 +33,7 @@ func (v *Validating) Handle(_ context.Context, req admission.Request) admission.
 
 	klog.V(3).Infof("Validating StatefulSet %s/%s", obj.GetNamespace(), obj.GetName())
 
-	errList := optimize_scheduling.ValidateOptimizeSchedulingConfiguration(obj.GetLabels())
+	errList := optimizescheduling.ValidateOptimizeSchedulingConfiguration(obj.GetLabels())
 	if len(errList) > 0 {
 		return admission.Denied(errList.ToAggregate().Error())
 	}

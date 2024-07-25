@@ -1,0 +1,77 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: vmanager-mutate-pod
+webhooks:
+  - name: mutate.pod.vacant.sh
+    admissionReviewVersions:
+      - v1
+    clientConfig:
+      url: https://vmanager-webhook.vmanager.svc:443/mutate-pod
+    failurePolicy: Fail
+    matchPolicy: Equivalent
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+        scope: "Namespaced"
+    sideEffects: None
+    timeoutSeconds: 3
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: vmanager-validate-pod
+webhooks:
+  - name: validate.pod.vacant.sh
+    admissionReviewVersions: ["v1"]
+    clientConfig:
+      url: https://vmanager-webhook.vmanager.svc:443/validate-pod
+    rules:
+      - operations: ["UPDATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+        scope: "Namespaced"
+    failurePolicy: Fail
+    sideEffects: None
+    timeoutSeconds: 3
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: vmanager-validate-deployment
+webhooks:
+  - name: validate.deployment.vacant.sh
+    admissionReviewVersions: ["v1"]
+    clientConfig:
+      url: https://vmanager-webhook.vmanager.svc:443/validate-deployment
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        resources: ["deployments"]
+        scope: "Namespaced"
+    failurePolicy: Fail
+    sideEffects: None
+    timeoutSeconds: 3
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: vmanager-validate-statefulset
+webhooks:
+  - name: validate.statefulset.vacant.sh
+    admissionReviewVersions: ["v1"]
+    clientConfig:
+      url: https://vmanager-webhook.vmanager.svc:443/validate-statefulset
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        resources: ["statefulsets"]
+        scope: "Namespaced"
+    failurePolicy: Fail
+    sideEffects: None
+    timeoutSeconds: 3

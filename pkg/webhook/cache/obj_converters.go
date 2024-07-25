@@ -1,10 +1,20 @@
-package webhook_cache
+package cache
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 )
+
+func convertToReplicaSet(obj interface{}) *appsv1.ReplicaSet {
+	replicaSet, ok := obj.(*appsv1.ReplicaSet)
+	if !ok {
+		klog.Errorf("Cannot convert %v to *appsv1.ReplicaSet", obj)
+		return nil
+	}
+
+	return replicaSet
+}
 
 func convertToDeployment(obj interface{}) *appsv1.Deployment {
 	deployment, ok := obj.(*appsv1.Deployment)

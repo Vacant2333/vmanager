@@ -14,10 +14,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"vacant.sh/vmanager/cmd/webhook-manager/app/options"
+	"vacant.sh/vmanager/pkg/webhook/cache"
 	"vacant.sh/vmanager/pkg/webhook/deployment"
 	"vacant.sh/vmanager/pkg/webhook/pod"
 	"vacant.sh/vmanager/pkg/webhook/statefulset"
-	"vacant.sh/vmanager/pkg/webhook_cache"
 )
 
 const ComponentName = "vmanager-webhook-manager"
@@ -57,7 +57,7 @@ func Run(ctx context.Context, opts *options.Options) error {
 	}
 
 	// Build the webhook cache.
-	wc, err := webhook_cache.NewWebhookCache(kubeConfig)
+	wc, err := cache.NewWebhookCache(kubeConfig)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,10 @@ func Run(ctx context.Context, opts *options.Options) error {
 		decoder := admission.NewDecoder(webhookManager.GetScheme())
 
 		webhookServer.Register("/mutate-pod", &webhook.Admission{
-			Handler: &pod.Mutating{Cache: wc},
+			Handler: &pod.Mutating{Decoder: decoder, Cache: wc},
+		})
+		webhookServer.Register("/validate-pod", &webhook.Admission{
+			Handler: &pod.Validating{Decoder: decoder},
 		})
 		webhookServer.Register("/validate-deployment", &webhook.Admission{
 			Handler: &deployment.Validating{Decoder: decoder},

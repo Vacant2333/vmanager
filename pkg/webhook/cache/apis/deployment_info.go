@@ -6,12 +6,12 @@ import (
 
 type DeploymentInfo struct {
 	Deployment *appsv1.Deployment
-	*OptimizeSchedulingInfo
+	*OptimizeSchedulingSetting
 }
 
 func NewDeploymentInfo(deployment *appsv1.Deployment) *DeploymentInfo {
 	return &DeploymentInfo{
-		Deployment:             deployment,
-		OptimizeSchedulingInfo: NewOptimizeSchedulingInfoFromLabels(deployment.Labels, int(*deployment.Spec.Replicas)),
+		Deployment:                deployment,
+		OptimizeSchedulingSetting: NewOptimizeSchedulingSettingFromLabels(deployment.Labels, int(*deployment.Spec.Replicas)),
 	}
 }
